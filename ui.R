@@ -1,7 +1,14 @@
 ## app.R ##
 library(shiny)
 library(shinydashboard)
+library(shinyWidgets)
+library(DT)
 library(dplyr)
+library(leaflet)
+
+# dt <- read.csv("data/ufo-sightings.csv")
+dt <- read.csv("data\\ufo-sightings.csv")
+states <- unique(dt[,"state"])
 
 dashboardPage(
   dashboardHeader(title = "UFO Insighting"),
@@ -9,7 +16,7 @@ dashboardPage(
     sidebarMenu(
       menuItem("UFO Dashboard", tabName = "dashboard", icon = icon("reddit-alien")),
       menuItem("UFO Sighting by Date", tabName = "ufo_date", icon = icon("calendar-alt")),
-      menuItem("UFO Sighting City Mapped", tabName = "ufo_map", icon = icon("globe-americas")),
+      menuItem("UFO Sighting State Mapped", tabName = "ufo_map", icon = icon("globe-americas")),
       menuItem("UFO Sighting by shape", tabName = "ufo_basic", icon = icon("chart-area")),
       menuItem("UFO Sighting by time", tabName = "ufo_time", icon = icon("stopwatch"))
     )
@@ -26,12 +33,25 @@ dashboardPage(
                 )
               ),
               fluidRow(
-                infoBox("UFO Sightings", 10 * 2, icon = icon("reddit-alien"), fill = TRUE, color = "green"),
-                infoBox("UFO Sighting Shapes", 10 * 2, icon = icon("vector-square"), fill = TRUE),
-                infoBox("UFO Sighting Cities", 10 * 2, icon = icon("city"), fill = TRUE, color = "yellow")
+                infoBoxOutput("ufo_sightings"),
+                infoBoxOutput("ufo_sightings_shapes"),
+                infoBoxOutput("ufo_sightings_cities")
               ),
               fluidRow(
-                
+                box(
+                  status = "primary", 
+                  title = "Columns to show",
+                  solidHeader = TRUE,
+                  width = 2,
+                  fileInput("ufo_file", "Upload file"),
+                  checkboxGroupInput("show_vars", NULL,
+                                     choices = names(dt), selected = names(dt))
+                ),
+                box(
+                  width = 10,
+                  h1("The UFO Sighting dataset"),
+                  DT::dataTableOutput("ufo_dataset")
+                )
               )
       ),
       tabItem(tabName = "ufo_date",
@@ -40,16 +60,39 @@ dashboardPage(
                     title = "Filtros",
                     solidHeader = TRUE,
                     
-                    dateRangeInput("ufo_date_range", "Rango de fechas"),
-                    radioButtons("ufo_date_period", label ="Período", choices = list("Año" = 1,
-                                                                              "Mes" = 2,
-                                                                              "Día" = 3)),
+                    dateRangeInput("ufo_date_range",
+                                   "Rango de fechas",
+                                   start = "1969-01-08",
+                                   end = "2021-05-19",
+                                   separator = "-",
+                                   startview = "year"),
+                    selectInput("ufo_date_period",
+                                 label ="Período",
+                                 choices = list("Year" = "year",
+                                                "Month" = "month",
+                                                "Day" = "day")),
+                    radioButtons("ufo_date_color","Color de puntos",
+                                 choices = list("Azul"="steelblue",
+                                                "Gris"="gray",
+                                                "Verde"="green",
+                                                "Negro"="black")),
                     helpText("Nota: Se mostrará una gráfica con los conteos de UFO Sightings
-                             (abistamiento de OVNIS) en el rango de fechas seleccionado agrupado por el período."),
-                    actionButton("ufo_date_btn", "Ver UFO Sightings", icon = icon("space-shuttle"))
+                             (abistamiento de OVNIS) en el rango de fechas seleccionado agrupado por el período.")
                 ),
                 box(
-                  title = "Output",
+                  status = "primary", 
+                  solidHeader = TRUE,
+                  title = "UFO Insighting by Date",
+                  plotOutput("ufo_date_plot")
+                )
+              ),
+              fluidRow(
+                box(
+                  status = "warning", 
+                  solidHeader = TRUE,
+                  width = 12,
+                  title = "UFO Insighting by Date - Dataset",
+                  DT::dataTableOutput("ufo_date_dataset")
                 )
               )
       ),
@@ -59,24 +102,38 @@ dashboardPage(
                     title = "Filtros",
                     solidHeader = TRUE,
                     
-                    selectInput("ufo_map_shape", "Shape", choices = list("Cube" = 1,
-                                                                                     "Circle" = 2,
-                                                                                     "Light" = 3)),
+                    selectInput("ufo_map_state", "State", choices = states),
+                    searchInput(
+                      inputId = "ufo_map_shape", label = "Enter your shape",
+                      placeholder = "circle...",
+                      btnSearch = icon("search"),
+                      btnReset = icon("remove")
+                    ),
+                    verbatimTextOutput("ufo_map_msg"),
                     helpText("Nota: Se mostrará una mapa de los USA indicando los conteos de UFO Sightings
                              (abistamiento de OVNIS) que han sucedido en los estados correspondientes."),
-                    actionButton("ufo_date_btn", "Ver UFO Sightings", icon = icon("space-shuttle"))
                 ),
                 box(
                   title = "Output",
+                  leafletOutput("ufo_map_draw", height = 500)
+                )
+              ),
+              fluidRow(
+                box(
+                  status = "warning", 
+                  solidHeader = TRUE,
+                  width = 12,
+                  title = "UFO Insighting by State Mapped - Dataset",
+                  DT::dataTableOutput("ufo_map_dataset")
                 )
               )
       ),
       tabItem(tabName = "ufo_basic",
               fluidRow(
                       box(status = "primary", 
-                          title = "Filtros",
+                          title = "By shape",
                           solidHeader = TRUE,
-                          selectInput("select_shape", "Shape:",
+                          selectInput("select_shape", "Shapes:",
                                       c("sphere"="sphere",
                                         "unknown"="unknown",
                                         "flash"="flash",
@@ -100,11 +157,13 @@ dashboardPage(
                                         "cone"="cone",
                                         "cross"="cross"), 
                                       multiple = TRUE), 
-                          uiOutput("ui_select_state")
+                          plotOutput("ufo_shape_plot")
                           , textOutput("result")
                       ),
-                      box(title = "Output",
-                          plotOutput("ufo_shape_plot"),
+                      box(status = "primary", 
+                          title = "By state",
+                          solidHeader = TRUE,
+                          uiOutput("ui_select_state"),
                           plotOutput("ufo_state_plot")
                       )
               )
