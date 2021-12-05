@@ -1,6 +1,7 @@
 ## app.R ##
 library(shiny)
 library(shinydashboard)
+library(dplyr)
 
 dashboardPage(
   dashboardHeader(title = "UFO Insighting"),
@@ -8,9 +9,9 @@ dashboardPage(
     sidebarMenu(
       menuItem("UFO Dashboard", tabName = "dashboard", icon = icon("reddit-alien")),
       menuItem("UFO Sighting by Date", tabName = "ufo_date", icon = icon("calendar-alt")),
-      menuItem("UFO Sighting by Time", tabName = "ufo_time", icon = icon("stopwatch")),
       menuItem("UFO Sighting City Mapped", tabName = "ufo_map", icon = icon("globe-americas")),
-      menuItem("UFO Sighting Basic", tabName = "ufo_basic", icon = icon("chart-area"))
+      menuItem("UFO Sighting by shape", tabName = "ufo_basic", icon = icon("chart-area")),
+      menuItem("UFO Sighting by time", tabName = "ufo_time", icon = icon("stopwatch"))
     )
   ),
   dashboardBody(
@@ -52,9 +53,6 @@ dashboardPage(
                 )
               )
       ),
-      tabItem(tabName = "ufo_time",
-              
-      ),
       tabItem(tabName = "ufo_map",
               fluidRow(
                 box(status = "primary", 
@@ -72,10 +70,56 @@ dashboardPage(
                   title = "Output",
                 )
               )
-              
       ),
       tabItem(tabName = "ufo_basic",
-              
+              fluidRow(
+                      box(status = "primary", 
+                          title = "Filtros",
+                          solidHeader = TRUE,
+                          selectInput("select_shape", "Shape:",
+                                      c("sphere"="sphere",
+                                        "unknown"="unknown",
+                                        "flash"="flash",
+                                        "light"="light",
+                                        "oval"="oval",
+                                        "changing"="changing",
+                                        "disk"="disk",
+                                        "fireball"="fireball",
+                                        "circle"="circle",
+                                        "triangle"="triangle",
+                                        "rectangle"="rectangle",
+                                        "formation"="formation",
+                                        "other"="other",
+                                        "cigar"="cigar",
+                                        "diamond"="diamond",
+                                        "egg"="egg",
+                                        "chevron"="chevron",
+                                        "teardrop"="teardrop",
+                                        "-"="-",
+                                        "cylinder"="cylinder",
+                                        "cone"="cone",
+                                        "cross"="cross"), 
+                                      multiple = TRUE), 
+                          uiOutput("ui_select_state")
+                          , textOutput("result")
+                      ),
+                      box(title = "Output",
+                          plotOutput("ufo_shape_plot"),
+                          plotOutput("ufo_state_plot")
+                      )
+              )
+      ),
+      tabItem(tabName = "ufo_time",
+              fluidRow(
+                      box(status = "primary", 
+                           title = "Filtros",
+                          solidHeader = TRUE, 
+                          div(actionButton("ufo_basic_btn", "Plot UFO Sightings", icon = icon("space-shuttle")), 
+                              align = "center")
+                      ),
+                      box(title = "Output"
+                      )
+              )
       )
     )
   )
