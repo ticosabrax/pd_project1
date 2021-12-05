@@ -6,12 +6,12 @@ library(DT)
 library(dplyr)
 library(leaflet)
 
-# dt <- read.csv("data/ufo-sightings.csv")
-dt <- read.csv("data\\ufo-sightings.csv")
+dt <- read.csv("data/ufo-sightings.csv")
+# dt <- read.csv("data//ufo-sightings.csv")
 states <- unique(dt[,"state"])
 
 dashboardPage(
-  dashboardHeader(title = "UFO Insighting"),
+  dashboardHeader(title = "UFO sighting"),
   dashboardSidebar(
     sidebarMenu(
       menuItem("UFO Dashboard", tabName = "dashboard", icon = icon("reddit-alien")),
@@ -129,6 +129,10 @@ dashboardPage(
               )
       ),
       tabItem(tabName = "ufo_basic",
+              h4("Tip: This tab could be used with one, two or without parameters (shape and state):"),
+              helpText("http://localhost:3028/?shape=flash,oval,rectangle"),
+              helpText("http://localhost:3028/?shape=flash&state=MA,TX,CA"),
+              br(),
               fluidRow(
                       box(status = "primary", 
                           title = "By shape",
@@ -152,13 +156,13 @@ dashboardPage(
                                         "egg"="egg",
                                         "chevron"="chevron",
                                         "teardrop"="teardrop",
-                                        "-"="-",
+                                        " "=" ",
                                         "cylinder"="cylinder",
                                         "cone"="cone",
                                         "cross"="cross"), 
                                       multiple = TRUE), 
                           plotOutput("ufo_shape_plot")
-                          , textOutput("result")
+                          #, textOutput("result")
                       ),
                       box(status = "primary", 
                           title = "By state",
@@ -171,13 +175,33 @@ dashboardPage(
       tabItem(tabName = "ufo_time",
               fluidRow(
                       box(status = "primary", 
-                           title = "Filtros",
+                          title = "By time",
                           solidHeader = TRUE, 
-                          div(actionButton("ufo_basic_btn", "Plot UFO Sightings", icon = icon("space-shuttle")), 
+                          selectInput("select_timeday", "Time of day:",
+                                      c("0000 - 0359"="00-04",
+                                        "0400 - 0759"="04-08",
+                                        "0800 - 1159"="08-12",
+                                        "1200 - 1559"="12-16",
+                                        "1600 - 2159"="16-20",
+                                        "2000 - 2359"="20-24"), 
+                                      multiple = TRUE), 
+                          div(helpText("* Select your filter value(s) and then click the button below."),
+                            actionButton("ufo_time_btn", "Plot UFO Sightings", icon = icon("space-shuttle")), 
                               align = "center")
                       ),
-                      box(title = "Output"
+                      box(title = "Output",
+                          plotOutput("ufo_daytime_plot")
                       )
+              ),
+              fluidRow(
+                box(
+                  status = "warning", 
+                  solidHeader = TRUE,
+                  width = 12,
+                  title = "UFO sightings by time of day - Dataset",
+                  DT::dataTableOutput("ufo_daytime_dataset")
+                )
+                
               )
       )
     )

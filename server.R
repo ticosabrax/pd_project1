@@ -1,11 +1,16 @@
-ufo_dataset = read.csv("data\\ufo-sightings.csv", header = TRUE)
-
 library(DT)
 library(dplyr)
 library(lubridate)
 library(ggplot2)
 library(leaflet)
 library(shinyalert)
+
+ufo_dataset = read.csv("data/ufo-sightings.csv", header = TRUE)
+# ufo_dataset = read.csv("data//ufo-sightings.csv", header = TRUE)
+ufo_dataset$hour = hour(as.POSIXct(
+                            gsub("-", "", gsub("T", "", gsub(":", "", ufo_dataset$date_time))), 
+                            format="%Y%m%d%H%M")
+                    )
 
 options(shiny.maxRequestSize = 30*1024^2)
 
@@ -191,44 +196,90 @@ shinyServer(function(input, output, session) {
 
 
 
-   ### UFO sightings by shape ###
+   ### UFO sightings by shape and state ###
    output$ufo_shape_plot <- renderPlot({
      if (!is.null(input$select_shape)) {
        selected_shapes <- ufo_dataset %>% 
-         filter(shape %in% input$select_shape) %>% 
-         count(shape)
+                           filter(shape %in% input$select_shape) %>% 
+                           count(shape)
        barplot(selected_shapes$n, names.arg=selected_shapes$shape, 
                col="lightgreen", border="white", las=2,
                xlab="Shape", ylab="Quantity", main="Count by shape")
      }
    })
 
-   
-   
-   ### UFO sightings by state ###
-   output$ui_select_state<-renderUI({
+   output$ui_select_state <- renderUI({
      all_states <- ufo_dataset %>% 
-       count(state)
+                    count(state)
      selectInput("select_state", "States:", choices=all_states$state, multiple=TRUE)
    })  
+   
    output$ufo_state_plot <- renderPlot({
      if (!is.null(input$select_state)) {
        sel_states <- ufo_dataset %>% 
-         filter(state %in% input$select_state) %>% 
-         count(state)
+                     filter(state %in% input$select_state) %>% 
+                     count(state)
        barplot(sel_states$n, names.arg=sel_states$state, 
                col="lightgreen", border="darkgreen", las=2,
                xlab="State", ylab="Quantity", main="Count by state")
      }
    })
    
-   
-   
-   output$result <- renderText({
-     #paste("You chose", ufo_dataset$city[[2]])
-     paste("")#input$select_shape)
+   observe({
+     query <- parseQueryString(session$clientData$url_search)
+     shapes <- NULL
+     if (!is.null(query[["shape"]])) {
+       shapes <- unlist(strsplit(query[["shape"]], ","))
+     }
+     if (!is.null(shapes)) {
+       updateSelectInput(session, "select_shape", selected=shapes)
+     }
+     states <- NULL
+     if (!is.null(query[["state"]])) {
+       states <- unlist(strsplit(query[["state"]], ","))
+     }
+     if (!is.null(states)) {
+       updateSelectInput(session, "select_state", selected=states)
+     }
    })
    
    
-  
+   
+   ### UFO sightings by day time ###
+   do_plot_time <- eventReactive(input$ufo_time_btn, {
+     if (!is.null(input$select_timeday)) {
+       hours <- c()
+       for (item in input$select_timeday) {
+         st <- as.integer(strsplit(item, "-")[[1]][1]) #start time
+         et <- as.integer(strsplit(item, "-")[[1]][2])-1 #end time
+         hours <- append(hours, c(st:et))
+       }
+       sel_hours <- ufo_dataset %>%
+                    filter(hour %in% hours) %>%
+                    count(hour)
+       par(bg = 'lightblue')
+       barplot(sel_hours$n, names.arg=sel_hours$hour,
+               col="aquamarine1", border="darkblue", las=2,
+               xlab="Hour", ylab="Quantity", main="Count by time of day")
+       sel_hours <- ufo_dataset %>%
+                     filter(hour %in% hours)
+       datatable(sel_hours, 
+                 options = list(buttons = c("csv", "pdf"), dom = 'lfrtipB'),
+                 filter = list(position = 'top'))
+     }
+   })
+   
+   output$ufo_daytime_plot <- renderPlot({
+     do_plot_time()
+   })
+   
+   output$ufo_daytime_dataset <- DT::renderDataTable({
+     do_plot_time()
+   })
+   
+
+
+   # output$result <- renderText({ paste(ufo_dataset$hour[1])
+   # })
+   
 })
