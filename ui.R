@@ -7,13 +7,12 @@ library(dplyr)
 library(leaflet)
 
 dt <- read.csv("data/ufo-sightings.csv")
-# dt <- read.csv("data//ufo-sightings.csv")
 states <- unique(dt[,"state"])
 
 dashboardPage(
   dashboardHeader(title = "UFO sighting"),
   dashboardSidebar(
-    sidebarMenu(
+    sidebarMenu(id="main_menu", 
       menuItem("UFO Dashboard", tabName = "dashboard", icon = icon("reddit-alien")),
       menuItem("UFO Sighting by Date", tabName = "ufo_date", icon = icon("calendar-alt")),
       menuItem("UFO Sighting State Mapped", tabName = "ufo_map", icon = icon("globe-americas")),
@@ -130,8 +129,8 @@ dashboardPage(
       ),
       tabItem(tabName = "ufo_basic",
               h4("Tip: This tab could be used with one, two or without parameters (shape and state):"),
-              helpText("http://localhost:3028/?shape=flash,oval,rectangle"),
-              helpText("http://localhost:3028/?shape=flash&state=MA,TX,CA"),
+              helpText("http://localhost:<port>/?shape=flash,oval,rectangle"),
+              helpText("http://localhost:<port>/?shape=flash&state=MA,TX,CA"),
               br(),
               fluidRow(
                       box(status = "primary", 
@@ -167,7 +166,8 @@ dashboardPage(
                       box(status = "primary", 
                           title = "By state",
                           solidHeader = TRUE,
-                          uiOutput("ui_select_state"),
+                          # uiOutput("ui_select_state"),
+                          selectInput("select_state", "States:", states, multiple = TRUE),
                           plotOutput("ufo_state_plot")
                       )
               )

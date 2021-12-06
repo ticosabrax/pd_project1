@@ -5,7 +5,6 @@ library(ggplot2)
 library(leaflet)
 
 ufo_dataset = read.csv("data/ufo-sightings.csv", header = TRUE)
-# ufo_dataset = read.csv("data//ufo-sightings.csv", header = TRUE)
 ufo_dataset$hour = hour(as.POSIXct(
                             gsub("-", "", gsub("T", "", gsub(":", "", ufo_dataset$date_time))), 
                             format="%Y%m%d%H%M")
@@ -217,11 +216,11 @@ shinyServer(function(input, output, session) {
      }
    })
 
-   output$ui_select_state <- renderUI({
-     all_states <- ufo_dataset %>% 
-                    count(state)
-     selectInput("select_state", "States:", choices=all_states$state, multiple=TRUE)
-   })  
+   # output$ui_select_state <- renderUI({
+   #   all_states <- ufo_dataset %>% 
+   #                  count(state)
+   #   selectInput("select_state", "States:", choices=all_states$state, multiple=TRUE)
+   # })  
    
    output$ufo_state_plot <- renderPlot({
      if (!is.null(input$select_state)) {
@@ -249,6 +248,9 @@ shinyServer(function(input, output, session) {
      }
      if (!is.null(states)) {
        updateSelectInput(session, "select_state", selected=states)
+     }
+     if (!is.null(shapes) || !is.null(states)) {
+       updateTabsetPanel(session, "main_menu", selected = "ufo_basic")
      }
    })
    
