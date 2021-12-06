@@ -3,6 +3,7 @@ library(dplyr)
 library(lubridate)
 library(ggplot2)
 library(leaflet)
+library(plotly)
 
 ufo_dataset = read.csv("data/ufo-sightings.csv", header = TRUE)
 ufo_dataset$hour = hour(as.POSIXct(
@@ -24,17 +25,6 @@ shinyServer(function(input, output, session) {
   })
 
   # ------------ UFO Dashboard --------------------
-  
-  getDTShowVars <- reactive({
-    dt <- fileUpload()
-    dt[, input$show_vars]
-    
-    return(dt)
-  })
-  
-  output$salida <- renderText({
-    input$show_vars
-  })
   # Renderizando la table del dataset
   output$ufo_dataset <- DT::renderDataTable({
       dt <- fileUpload() %>%
@@ -104,7 +94,7 @@ shinyServer(function(input, output, session) {
   })
   
   # Renderizando y creando el plot
-  output$ufo_date_plot <- renderPlot({
+  output$ufo_date_plot <- renderPlotly({
     dt <- getDTDate()
     
     if (!is.null(dt)){

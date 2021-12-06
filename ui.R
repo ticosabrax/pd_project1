@@ -5,6 +5,7 @@ library(shinyWidgets)
 library(DT)
 library(dplyr)
 library(leaflet)
+library(plotly)
 
 dt <- read.csv("data/ufo-sightings.csv")
 states <- unique(dt[,"state"])
@@ -17,7 +18,8 @@ dashboardPage(
       menuItem("UFO Sighting by Date", tabName = "ufo_date", icon = icon("calendar-alt")),
       menuItem("UFO Sighting State Mapped", tabName = "ufo_map", icon = icon("globe-americas")),
       menuItem("UFO Sighting by shape", tabName = "ufo_basic", icon = icon("chart-area")),
-      menuItem("UFO Sighting by time", tabName = "ufo_time", icon = icon("stopwatch"))
+      menuItem("UFO Sighting by time", tabName = "ufo_time", icon = icon("stopwatch")),
+      menuItem("Credits", tabName = "credits", icon = icon("user"))
     )
   ),
   dashboardBody(
@@ -56,7 +58,9 @@ dashboardPage(
       ),
       tabItem(tabName = "ufo_date",
               fluidRow(
-                box(status = "primary", 
+                box(
+                    width = 4,
+                    status = "primary", 
                     title = "Filtros",
                     solidHeader = TRUE,
                     
@@ -80,10 +84,11 @@ dashboardPage(
                              (abistamiento de OVNIS) en el rango de fechas seleccionado agrupado por el período.")
                 ),
                 box(
+                  width = 8,
                   status = "primary", 
                   solidHeader = TRUE,
                   title = "UFO Insighting by Date",
-                  plotOutput("ufo_date_plot")
+                  plotlyOutput("ufo_date_plot")
                 )
               ),
               fluidRow(
@@ -98,7 +103,9 @@ dashboardPage(
       ),
       tabItem(tabName = "ufo_map",
               fluidRow(
-                box(status = "primary", 
+                box(
+                    width = 4,
+                    status = "primary", 
                     title = "Filtros",
                     solidHeader = TRUE,
                     
@@ -113,7 +120,10 @@ dashboardPage(
                              (abistamiento de OVNIS) que han sucedido en los estados correspondientes."),
                 ),
                 box(
-                  title = "Output",
+                  width = 8,
+                  status = "primary", 
+                  solidHeader = TRUE,
+                  title = "UFO Insighting by State",
                   leafletOutput("ufo_map_draw", height = 500)
                 )
               ),
@@ -203,6 +213,19 @@ dashboardPage(
                 )
                 
               )
+      ),
+      tabItem(tabName = "credits",
+              fluidRow(
+                box(
+                    width = 12,
+                    status = "warning", 
+                    solidHeader = TRUE,
+                    title = "Credits",
+                    h3("Edgar Sabán - 19012631"),
+                    h3("Henry Barrientos - 21001538")
+        
+                )
+                )
       )
     )
   )
