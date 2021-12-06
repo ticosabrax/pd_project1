@@ -3,7 +3,6 @@ library(dplyr)
 library(lubridate)
 library(ggplot2)
 library(leaflet)
-library(shinyalert)
 
 ufo_dataset = read.csv("data/ufo-sightings.csv", header = TRUE)
 # ufo_dataset = read.csv("data//ufo-sightings.csv", header = TRUE)
@@ -26,10 +25,20 @@ shinyServer(function(input, output, session) {
   })
 
   # ------------ UFO Dashboard --------------------
+  
+  getDTShowVars <- reactive({
+    dt <- fileUpload()
+    dt[, input$show_vars]
+    
+    return(dt)
+  })
+  
+  output$salida <- renderText({
+    input$show_vars
+  })
   # Renderizando la table del dataset
   output$ufo_dataset <- DT::renderDataTable({
-      dt <- fileUpload()
-      dt[, input$show_vars] %>%
+      dt <- fileUpload() %>%
       DT::datatable(extensions = 'Buttons',
                     options = list(buttons = c("csv", "pdf"),
                                    dom = 'lfrtipB'),

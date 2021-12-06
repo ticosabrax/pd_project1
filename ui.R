@@ -39,20 +39,21 @@ dashboardPage(
               ),
               fluidRow(
                 box(
+                  width = 12,
                   status = "primary", 
                   title = "Columns to show",
                   solidHeader = TRUE,
-                  width = 2,
-                  fileInput("ufo_file", "Upload file"),
-                  checkboxGroupInput("show_vars", NULL,
-                                     choices = names(dt), selected = names(dt))
-                ),
+                  fileInput("ufo_file", "Upload file")
+                )
+              ),
+              fluidRow(
                 box(
-                  width = 10,
+                  width = 12,
                   h1("The UFO Sighting dataset"),
                   DT::dataTableOutput("ufo_dataset")
                 )
               )
+
       ),
       tabItem(tabName = "ufo_date",
               fluidRow(
@@ -109,7 +110,6 @@ dashboardPage(
                       btnSearch = icon("search"),
                       btnReset = icon("remove")
                     ),
-                    verbatimTextOutput("ufo_map_msg"),
                     helpText("Nota: Se mostrará una mapa de los USA indicando los conteos de UFO Sightings
                              (abistamiento de OVNIS) que han sucedido en los estados correspondientes."),
                 ),
